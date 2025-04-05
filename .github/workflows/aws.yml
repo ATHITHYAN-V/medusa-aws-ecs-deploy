@@ -34,23 +34,13 @@ jobs:
           docker build -t $REPO_URI:latest .
           docker push $REPO_URI:latest
 
-      - name: Update ECS Task Definition with new ECR image
-        id: update-task-def
-        run: |
-          TASK_DEF=$(aws ecs describe-task-definition --task-definition medusa-task)
-          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
-            --arg IMAGE "$REPO_URI:latest" \
-            '.taskDefinition |
-            .containerDefinitions[0].image = $IMAGE |
-            del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
-          echo "$NEW_TASK_DEF" > new-task-def.json
-          NEW_ARN=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json | jq -r '.taskDefinition.taskDefinitionArn')
-          echo "task_definition_arn=$NEW_ARN" >> $GITHUB_OUTPUT
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
 
-      - name: Deploy updated task to ECS
+      - name: Terraform Init & Apply
         run: |
-          aws ecs update-service \
-            --cluster medusa-cluster \
-            --service medusa-service \
-            --task-definition ${{ steps.update-task-def.outputs.task_definition_arn }} \
-            --force-new-deployment
+          cd terraform
+          terraform init
+          terraform apply -auto-approve -var="container_image=${{ env.ECR_REPO }}:${{ env.IMAGE_TAG }}"
