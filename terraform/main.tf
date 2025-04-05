@@ -4,6 +4,12 @@ provider "aws" {
   region = var.region
 }
 
+variable "container_image" {
+  description = "The Docker image to deploy in ECS"
+  type        = string
+}
+
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -201,9 +207,7 @@ variable "task_family" {
   default = "medusa-task"
 }
 
-variable "container_name" {
-  default = "medusa-container"
-}
+
 
 variable "ecr_repo_name" {
   default = "medusa-store"
