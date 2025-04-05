@@ -9,6 +9,11 @@ variable "container_image" {
   type        = string
 }
 
+variable "container_name" {
+  description = "The name of the container"
+  type        = string
+  default     = "medusa"
+}
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -112,11 +117,11 @@ resource "aws_lb" "medusa" {
 }
 
 resource "aws_lb_target_group" "medusa" {
-  name     = "medusa-tg"
-  port     = var.container_port
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
-  target_type = "ip"
+  name         = "medusa-tg"
+  port         = var.container_port
+  protocol     = "HTTP"
+  vpc_id       = aws_vpc.main.id
+  target_type  = "ip"
 }
 
 resource "aws_lb_listener" "http" {
@@ -141,7 +146,7 @@ resource "aws_ecs_task_definition" "medusa" {
   container_definitions = jsonencode([
     {
       name      = var.container_name
-      image     = "${aws_ecr_repository.medusa.repository_url}:latest"
+      image     = var.container_image
       portMappings = [
         {
           containerPort = var.container_port
@@ -206,8 +211,6 @@ variable "service_name" {
 variable "task_family" {
   default = "medusa-task"
 }
-
-
 
 variable "ecr_repo_name" {
   default = "medusa-store"
