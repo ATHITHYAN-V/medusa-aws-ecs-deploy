@@ -456,9 +456,8 @@ docker push yourdockeruser/medusa-backend
 ## ✅ Final Result
 
 - ECS Service running Medusa backend
-- PostgreSQL RDS Aurora connected
 - CI/CD with GitHub Actions
-- Docker image hosted on Docker Hub
+- Docker image pushed to ECS
 - Live, scalable, serverless deployment 🎉
 
 ---
@@ -472,9 +471,7 @@ docker push yourdockeruser/medusa-backend
 
 ## 🔗 GitHub Repo
 
-> 🔗 **[Insert Public GitHub Repo Link Here]**  
+> 🔗 **[https://github.com/ATHITHYAN-V/medusa-aws-ecs-deploy/tree/main]**  
 > Feel free to fork or star it! Contributions welcome.
 
 ---
-
-Let me know if you want this zipped or converted to a GitHub repo directly. Want me to build this out with real Terraform modules and ECS Task definitions too?
