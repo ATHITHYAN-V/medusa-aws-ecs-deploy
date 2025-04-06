@@ -364,40 +364,62 @@ services:
 
 **File: `.github/workflows/deploy.yml`**
 ```yaml
-name: Deploy to ECS
+name: Deploy Medusa to AWS ECS
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/medusa-backend .
-        docker push ${{ secrets.DOCKER_USERNAME }}/medusa-backend
+      - name: Set ECR image URI
+        id: vars
+        run: |
+          echo "REPO_URI=$(aws ecr describe-repositories --repository-names medusa-store --region us-east-1 --query 'repositories[0].repositoryUri' --output text)" >> $GITHUB_ENV
 
-    - name: Deploy to ECS (Optional Step - if using ECS CLI or custom script)
-      run: echo "Deploying image to ECS using AWS CLI or Terraform"
+      - name: Build, tag, and push Docker image to ECR
+        run: |
+          docker build -t $REPO_URI:latest .
+          docker push $REPO_URI:latest
+
+      - name: Update ECS Task Definition with new ECR image
+        id: update-task-def
+        run: |
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition medusa-task)
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
+            --arg IMAGE "$REPO_URI:latest" \
+            '.taskDefinition |
+            .containerDefinitions[0].image = $IMAGE |
+            del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+          echo "$NEW_TASK_DEF" > new-task-def.json
+          NEW_ARN=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json | jq -r '.taskDefinition.taskDefinitionArn')
+          echo "task_definition_arn=$NEW_ARN" >> $GITHUB_OUTPUT
+
+      - name: Deploy updated task to ECS
+        run: |
+          aws ecs update-service \
+            --cluster medusa-cluster \
+            --service medusa-service \
+            --task-definition ${{ steps.update-task-def.outputs.task_definition_arn }} \
+            --force-new-deployment
 ```
 
 ---
