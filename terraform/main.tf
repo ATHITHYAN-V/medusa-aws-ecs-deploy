@@ -67,32 +67,10 @@ resource "aws_route_table_association" "public_subnet2" {
   route_table_id = aws_route_table.public.id
 }
 
-# Security Groups
-resource "aws_security_group" "ecs_sg" {
-  vpc_id = aws_vpc.main.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "ecs-sg"
-  }
-}
-
 resource "aws_security_group" "lb_sg" {
   vpc_id = aws_vpc.main.id
 
+  # Allow incoming HTTP traffic on port 80
   ingress {
     from_port   = 80
     to_port     = 80
@@ -100,6 +78,15 @@ resource "aws_security_group" "lb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow incoming HTTPS traffic on port 443 (if needed)
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow any outbound traffic (egress)
   egress {
     from_port   = 0
     to_port     = 0
@@ -111,6 +98,7 @@ resource "aws_security_group" "lb_sg" {
     Name = "lb-sg"
   }
 }
+
 
 # IAM Roles
 resource "aws_iam_role" "ecs_task_execution_role" {
