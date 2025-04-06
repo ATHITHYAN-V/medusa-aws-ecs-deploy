@@ -1,11 +1,11 @@
 
 ---
 
-## 🚀 Deploying Medusa Backend on AWS ECS with Terraform, RDS & GitHub Actions
+## 🚀 Deploying Medusa Backend on AWS ECS with Terraform & GitHub Actions
 
 ### 👨‍💻 Overview
 
-This project demonstrates the complete Infrastructure-as-Code (IaC) setup and CI/CD pipeline to deploy the **[Medusa.js](https://docs.medusajs.com)** headless commerce backend on **AWS ECS using Fargate**, with **PostgreSQL via RDS Aurora**, **Docker image on Docker Hub**, and **CI/CD via GitHub Actions**.
+This project demonstrates the complete IaC using Terraform  to deploy the  Medusa open source headless commerce platform backend (https://docs.medusajs.com/deployments/server/general-guide),on Aws ECS with Fargate and set up CD pipeline using GitHub Actions
 
 ---
 
