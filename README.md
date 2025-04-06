@@ -13,7 +13,6 @@ This project demonstrates the complete Infrastructure-as-Code (IaC) setup and CI
 
 - AWS Account
 - GitHub Account
-- Docker Hub Account
 - Terraform Installed
 - Docker Installed
 - Git Installed
@@ -175,10 +174,8 @@ jobs:
 
 Go to your GitHub Repo → `Settings > Secrets and variables > Actions` and add:
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
+- `ACCESS_KEY`
+- `SECRET_ACCESS_KEY`
 
 ---
 
